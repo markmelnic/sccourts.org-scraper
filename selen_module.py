@@ -27,8 +27,8 @@ def killb(dv):
     
 # open startup page
 def startup_link(dv):
-    #dv.get("http://sccourts.org/")
-    dv.get("https://www2.greenvillecounty.org/SCJD/PublicIndex/")
+    dv.get("http://sccourts.org/")
+    #dv.get("https://www2.greenvillecounty.org/SCJD/PublicIndex/")
    
 # start the worker 
 def worker(dv):
@@ -40,9 +40,9 @@ def worker(dv):
         ind += 1
         try:
             temp = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/table/tbody/tr["+str(ind)+"]/td[3]/a")
-            mouse.click(50, 10, 2)
+            mouse.click(10, 10, 2)
             time.sleep(0.1)
-            mouse.click(60, 110, 1)
+            mouse.click(20, 110, 1)
             
         except:
             break
@@ -70,12 +70,11 @@ def get_addresses(dv):
     time.sleep(3)
     
     case_number = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[2]").text
-    case_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[4]/td[2]").text
+    case_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[4]/td[4]").text
     case_status = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[5]/td[2]").text
-    disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[6]/td[4]").text
+    disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[6]").text
     county = dv.find_element_by_id("LabelHeadingCounty").text
-    court_agency = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[3]").text
-    
+    court_agency = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[4]").text
     
     i = 1
     defendants = []
@@ -112,33 +111,32 @@ def get_addresses(dv):
                 plaintiffs.append(plaintiff)
                 
         except:
-            
             data = {}
-            data['Case Number'] = case_number
-            data['Case Type'] = case_type
-            data['Case Status'] = case_status
-            data['Disposition Date'] = disposition_date
+            data['CaseNumber'] = case_number
+            data['CaseType'] = case_type
+            data['CaseStatus'] = case_status
+            data['DispositionDate'] = disposition_date
             data['County'] = county
-            data['Court Agency'] = court_agency
+            data['CourtAgency'] = court_agency
             
             data['Parties'] = {}
             for i in range(len(defendants)):
-                def_name = "Defendant_" + str(i)
+                def_name = "Defendant" + str(i+1)
                 data['Parties'][def_name] = {}
-                data['Parties'][def_name]['Defendant Name'] = defendants[i][0]
-                data['Parties'][def_name]['Defendant Full Address'] = defendants[i][1]
-                data['Parties'][def_name]['Defendant State'] = defendants[i][2]
-                data['Parties'][def_name]['Defendant City'] = defendants[i][3]
-                data['Parties'][def_name]['Defendant Zip Code'] = defendants[i][4]
+                data['Parties'][def_name]['Name'] = defendants[i][0]
+                data['Parties'][def_name]['FullAddress'] = defendants[i][1]
+                data['Parties'][def_name]['State'] = defendants[i][2]
+                data['Parties'][def_name]['City'] = defendants[i][3]
+                data['Parties'][def_name]['ZipCode'] = defendants[i][4]
             
             for i in range(len(plaintiffs)):
-                plf_name = "Plaintiff_" + str(i)
+                plf_name = "Plaintiff" + str(i+1)
                 data['Parties'][plf_name] = {}
-                data['Parties'][plf_name]['Plaintiff Name'] = defendants[i][0]
-                data['Parties'][plf_name]['Plaintiff Full Address'] = defendants[i][1]
-                data['Parties'][plf_name]['Plaintiff State'] = defendants[i][2]
-                data['Parties'][plf_name]['Plaintiff City'] = defendants[i][3]
-                data['Parties'][plf_name]['Plaintiff Zip Code'] = defendants[i][4]
+                data['Parties'][plf_name]['Name'] = plaintiffs[i][0]
+                data['Parties'][plf_name]['FullAddress'] = plaintiffs[i][1]
+                data['Parties'][plf_name]['State'] = plaintiffs[i][2]
+                data['Parties'][plf_name]['City'] = plaintiffs[i][3]
+                data['Parties'][plf_name]['ZipCode'] = plaintiffs[i][4]
             
             filename = case_number + ".json"
             with open(filename, 'w') as outfile:

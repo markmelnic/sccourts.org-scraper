@@ -72,7 +72,8 @@ def get_addresses(dv):
     case_number = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[2]").text
     case_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[4]/td[4]").text
     case_status = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[5]/td[2]").text
-    disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[6]").text
+    disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[6]/td[4]").text
+    filed_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[6]").text
     county = dv.find_element_by_id("LabelHeadingCounty").text
     court_agency = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[4]").text
     
@@ -88,10 +89,16 @@ def get_addresses(dv):
             full_address = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[2]").text
             party_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[6]").text
             
-            split_address = full_address.split(' ')
-            zip_code = split_address[-1]
-            state = split_address[-2]
-            city = split_address[-3]
+            if full_address == '':
+                full_address = '+'
+                zip_code = '+'
+                state = '+'
+                city = '+'
+            else:
+                split_address = full_address.split(' ')
+                zip_code = split_address[-1]
+                state = split_address[-2]
+                city = split_address[-3]
             
             if "d" in str(party_type.lower()):
                 defendant.append(name)
@@ -116,6 +123,7 @@ def get_addresses(dv):
             data['CaseType'] = case_type
             data['CaseStatus'] = case_status
             data['DispositionDate'] = disposition_date
+            data['FiledDate'] = filed_date
             data['County'] = county
             data['CourtAgency'] = court_agency
             

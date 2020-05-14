@@ -127,34 +127,36 @@ def get_addresses(dv):
             data['County'] = county
             data['CourtAgency'] = court_agency
             
-            data['Parties'] = {}
+            data['Defendants'] = []
             for i in range(len(defendants)):
-                def_name = "Defendant" + str(i+1)
-                data['Parties'][def_name] = {}
-                data['Parties'][def_name]['Name'] = defendants[i][0]
-                data['Parties'][def_name]['FullAddress'] = defendants[i][1]
-                data['Parties'][def_name]['State'] = defendants[i][2]
-                data['Parties'][def_name]['City'] = defendants[i][3]
-                data['Parties'][def_name]['ZipCode'] = defendants[i][4]
-            
+                def_name = {}
+                def_name['Name'] = defendants[i][0]
+                def_name['FullAddress'] = defendants[i][1]
+                def_name['State'] = defendants[i][2]
+                def_name['City'] = defendants[i][3]
+                def_name['ZipCode'] = defendants[i][4]
+                data['Defendants'].append(def_name)
+
+            data['Plaintiffs'] = []
             for i in range(len(plaintiffs)):
-                plf_name = "Plaintiff" + str(i+1)
-                data['Parties'][plf_name] = {}
-                data['Parties'][plf_name]['Name'] = plaintiffs[i][0]
-                data['Parties'][plf_name]['FullAddress'] = plaintiffs[i][1]
-                data['Parties'][plf_name]['State'] = plaintiffs[i][2]
-                data['Parties'][plf_name]['City'] = plaintiffs[i][3]
-                data['Parties'][plf_name]['ZipCode'] = plaintiffs[i][4]
+                plf_name = {}
+                plf_name['Name'] = plaintiffs[i][0]
+                plf_name['FullAddress'] = plaintiffs[i][1]
+                plf_name['State'] = plaintiffs[i][2]
+                plf_name['City'] = plaintiffs[i][3]
+                plf_name['ZipCode'] = plaintiffs[i][4]
+                data['Plaintiffs'].append(plf_name)
             
             filename = case_number + ".json"
             with open(filename, 'w') as outfile:
                 json.dump(data, outfile)
                 
             break
-    
+    '''
     url = 'http://admin.rentaware.net/system/evictions/index.cfm'
     payload = data
     headers = {'content-type': 'application/json'}
 
     response = requests.post(url, data=json.dumps(payload), headers=headers)
     print(response.status_code)
+    '''

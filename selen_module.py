@@ -1,13 +1,12 @@
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-import selenium.webdriver.common.action_chains as AC
-from selenium.webdriver.support.ui import WebDriverWait
-import selenium.webdriver.chrome.options
-import random
+import json
 import time
+import requests
+from pymouse import PyMouse
+from selenium import webdriver
+import selenium.webdriver.chrome.options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 # driver boot procedure
@@ -19,6 +18,7 @@ def boot():
 
     # driver itself
     dv = webdriver.Chrome(chrome_options = chrome_options, executable_path = r"./chromedriver81.exe")
+    dv.maximize_window()
     return dv
 
 # kill the driver
@@ -27,70 +27,128 @@ def killb(dv):
     
 # open startup page
 def startup_link(dv):
-    dv.get("http://sccourts.org/")
+    #dv.get("http://sccourts.org/")
+    dv.get("https://www2.greenvillecounty.org/SCJD/PublicIndex/")
    
 # start the worker 
 def worker(dv):
     WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
     
+    mouse = PyMouse()
     ind = 1
     while True:
         ind += 1
         try:
+            temp = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/table/tbody/tr["+str(ind)+"]/td[3]/a")
+            mouse.click(50, 10, 2)
+            time.sleep(0.1)
+            mouse.click(60, 110, 1)
+            
+        except:
+            break
+    
+    dv.close()
+    
+    ind = 1
+    while True:
+        ind += 1
+        try:
+            dv.switch_to.window(dv.window_handles[0])
+            time.sleep(0.5)
             row = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/table/tbody/tr["+str(ind)+"]/td[3]/a")
             #try:
             row.click()
             get_addresses(dv)
-            '''
-            except Exception as e:
-                print(e)
-                dv.back()
-                dv.back()
-                WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
-                time.sleep(3)
-                try:
-                    row.click()
-                    get_addresses(dv)
-                except:
-                    dv.back()
-                    #dv.back()
-                    WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
-                    time.sleep(3)
-                    row.click()
-                    get_addresses(dv)
-            '''
-                    
+            dv.close()
+            time.sleep(0.5)
         except:
             break
-       
+
 # get address on case page 
 def get_addresses(dv):
     WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
     time.sleep(3)
     
+    case_number = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[2]").text
+    case_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[4]/td[2]").text
+    case_status = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[5]/td[2]").text
+    disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[6]/td[4]").text
+    county = dv.find_element_by_id("LabelHeadingCounty").text
+    court_agency = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[3]").text
+    
+    
     i = 1
-    addresses = []
+    defendants = []
+    plaintiffs = []
     while True:
         i += 1
         try:
-            address = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[2]")
-            addresses.append(address.text)
+            defendant = []
+            plaintiff = []
+            name = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[1]").text
+            full_address = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[2]").text
+            party_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/div/div[2]/div[1]/span/table/tbody/tr["+str(i)+"]/td[6]").text
+            
+            split_address = full_address.split(' ')
+            zip_code = split_address[-1]
+            state = split_address[-2]
+            city = split_address[-3]
+            
+            if "d" in str(party_type.lower()):
+                defendant.append(name)
+                defendant.append(full_address)
+                defendant.append(state)
+                defendant.append(city)
+                defendant.append(zip_code)
+                defendant.append(party_type)
+                defendants.append(defendant)
+            else:
+                plaintiff.append(name)
+                plaintiff.append(full_address)
+                plaintiff.append(state)
+                plaintiff.append(city)
+                plaintiff.append(zip_code)
+                plaintiff.append(party_type)
+                plaintiffs.append(plaintiff)
+                
         except:
+            
+            data = {}
+            data['Case Number'] = case_number
+            data['Case Type'] = case_type
+            data['Case Status'] = case_status
+            data['Disposition Date'] = disposition_date
+            data['County'] = county
+            data['Court Agency'] = court_agency
+            
+            data['Parties'] = {}
+            for i in range(len(defendants)):
+                def_name = "Defendant_" + str(i)
+                data['Parties'][def_name] = {}
+                data['Parties'][def_name]['Defendant Name'] = defendants[i][0]
+                data['Parties'][def_name]['Defendant Full Address'] = defendants[i][1]
+                data['Parties'][def_name]['Defendant State'] = defendants[i][2]
+                data['Parties'][def_name]['Defendant City'] = defendants[i][3]
+                data['Parties'][def_name]['Defendant Zip Code'] = defendants[i][4]
+            
+            for i in range(len(plaintiffs)):
+                plf_name = "Plaintiff_" + str(i)
+                data['Parties'][plf_name] = {}
+                data['Parties'][plf_name]['Plaintiff Name'] = defendants[i][0]
+                data['Parties'][plf_name]['Plaintiff Full Address'] = defendants[i][1]
+                data['Parties'][plf_name]['Plaintiff State'] = defendants[i][2]
+                data['Parties'][plf_name]['Plaintiff City'] = defendants[i][3]
+                data['Parties'][plf_name]['Plaintiff Zip Code'] = defendants[i][4]
+            
+            filename = case_number + ".json"
+            with open(filename, 'w') as outfile:
+                json.dump(data, outfile)
+                
             break
-        
-    print(addresses)
-    '''
-    back = AC.ActionChains(dv)
-    back.key_down(Keys.LEFT_ALT).send_keys(Keys.ARROW_LEFT).key_up(Keys.LEFT_ALT).perform()
-    AC.ActionChains(dv).send_keys(Keys.LEFT_ALT, Keys.ARROW_LEFT).perform()
-    m = dv.find_element_by_xpath("/html")
-    m.send_keys(Keys.LEFT_ALT, Keys.ARROW_LEFT)
-    '''
-    dv.refresh()
-    time.sleep(5)
     
-    dv.back()
-    dv.back()
-    
-    WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
-    time.sleep(3)
+    url = 'http://admin.rentaware.net/system/evictions/index.cfm'
+    payload = data
+    headers = {'content-type': 'application/json'}
+
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+    print(response.status_code)

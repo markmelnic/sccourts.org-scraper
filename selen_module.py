@@ -13,8 +13,9 @@ from selenium.webdriver.support import expected_conditions as EC
 def boot():
     # manage notifications
     chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.default_content_setting_values.notifications" : 2}
-    chrome_options.add_experimental_option("prefs",prefs)
+    #prefs = {"profile.default_content_setting_values.notifications" : 2}
+    #chrome_options.add_experimental_option("prefs",prefs)
+    chrome_options.add_argument("user-agent=[Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36]")
 
     # driver itself
     dv = webdriver.Chrome(chrome_options = chrome_options, executable_path = r"./chromedriver81.exe")
@@ -43,26 +44,23 @@ def worker(dv):
             mouse.click(10, 10, 2)
             time.sleep(0.1)
             mouse.click(20, 110, 1)
+            time.sleep(0.2)
             
-        except:
-            break
-    
-    dv.close()
-    
-    ind = 1
-    while True:
-        ind += 1
-        try:
             dv.switch_to.window(dv.window_handles[0])
-            time.sleep(0.5)
+            time.sleep(0.3)
             row = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[5]/div/table/tbody/tr["+str(ind)+"]/td[3]/a")
             #try:
             row.click()
             get_addresses(dv)
             dv.close()
-            time.sleep(0.5)
+            time.sleep(0.3)
+            dv.switch_to.window(dv.window_handles[0])
+            time.sleep(0.3)
+            
         except:
             break
+        
+    dv.close()
 
 # get address on case page 
 def get_addresses(dv):
@@ -97,6 +95,16 @@ def get_addresses(dv):
             else:
                 split_address = full_address.split(' ')
                 zip_code = split_address[-1]
+                try:
+                    if len(zip_code) != 5:
+                        try: 
+                            zip_code = int(zip_code)
+                        except:
+                            zip_code = '+'
+                    else:
+                        zip_code = split_address[-1]
+                except Exception as e:
+                    print(e)
                 state = split_address[-2]
                 city = split_address[-3]
             
@@ -152,11 +160,11 @@ def get_addresses(dv):
                 json.dump(data, outfile)
                 
             break
-    '''
+    
     url = 'http://admin.rentaware.net/system/evictions/index.cfm'
     payload = data
     headers = {'content-type': 'application/json'}
 
     response = requests.post(url, data=json.dumps(payload), headers=headers)
     print(response.status_code)
-    '''
+    

@@ -15,11 +15,24 @@ def boot():
     chrome_options = webdriver.ChromeOptions()
     #prefs = {"profile.default_content_setting_values.notifications" : 2}
     #chrome_options.add_experimental_option("prefs",prefs)
-    chrome_options.add_argument("user-agent=[Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36]")
+    chrome_options.add_argument("disable-infobars")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-blink-features")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    #chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    #chrome_options.add_experimental_option('useAutomationExtension', False)
+    
+    #chrome_options.add_argument("user-agent=[Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36]")
 
     # driver itself
     dv = webdriver.Chrome(chrome_options = chrome_options, executable_path = r"./chromedriver81.exe")
     dv.maximize_window()
+    script = '''
+    Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined
+    })
+    '''
+    dv.execute_script(script)
     return dv
 
 # kill the driver

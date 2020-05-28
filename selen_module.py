@@ -118,24 +118,8 @@ def get_addresses(dv):
     while True:
         WebDriverWait(dv, 20).until(EC.visibility_of_all_elements_located)
         time.sleep(3)
-        try:
-            with open("processed_cases.txt", "r", newline='')as pc:
-                processed_cases = pc.read().splitlines()
-        except:
-            with open("processed_cases.txt", "w", newline='')as pc:
-                pc.close()
-                processed_cases = []
 
-        case_number = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[2]").text
-                                                
-        if case_number in processed_cases:
-            break
-        else:
-            processed_cases.append(case_number)
-            with open("processed_cases.txt", "w", newline='')as pc:
-                for case in processed_cases:
-                    pc.write(case + "\n")
-                
+        case_number = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[3]/td[2]").text  
         case_type = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[4]/td[4]").text
         case_status = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[5]/td[2]").text
         disposition_date = dv.find_element_by_xpath("/html/body/form/div[3]/div/div[2]/div[3]/table/tbody/tr[6]/td[4]").text
@@ -165,6 +149,8 @@ def get_addresses(dv):
                     split_address = full_address.split(' ')
                     zip_code = split_address[-1]
                     try:
+                        if len(zip_code) > 5:
+                                zip_code = zip_code[ 0 : 5 ]
                         if len(zip_code) != 5:
                             try: 
                                 zip_code = int(zip_code)
@@ -172,6 +158,7 @@ def get_addresses(dv):
                                 zip_code = '+'
                         else:
                             zip_code = split_address[-1]
+                        print(zip_code)
                     except Exception as e:
                         #print(e)
                         None
@@ -228,7 +215,6 @@ def get_addresses(dv):
                 filename = case_number + ".json"
                 with open(filename, 'w') as outfile:
                     json.dump(data, outfile)
-                    
                 break
         
         url = 'http://admin.rentaware.net/system/evictions/index.cfm'
@@ -239,4 +225,5 @@ def get_addresses(dv):
         print(response.status_code)
         
         print("Case", case_number, "processed successfully")
+        
         break
